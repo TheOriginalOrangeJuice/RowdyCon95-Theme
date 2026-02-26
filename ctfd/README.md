@@ -1,8 +1,10 @@
 # RowdyCon CTFd Win95 Theme
 
 ## Run
-- From repo root: `./scripts/up.sh`
+- From repo root: `docker compose up -d --build`
 - Open `http://localhost:8000`
+- Defaults come from `.ctfd.env` (set strong values for `SECRET_KEY` and `DB_ROOT_PASSWORD` before non-local deployments)
+- Stop with: `docker compose down`
 
 The first account you register becomes the admin user (standard CTFd behavior). Use the web UI to create it.
 The container entrypoint sets `ctf_theme` to `win95` on startup to ensure the theme is active before setup.
@@ -21,3 +23,4 @@ The container entrypoint sets `ctf_theme` to `win95` on startup to ensure the th
 ## Notes
 - Admin views are untouched (default CTFd admin UI)
 - No external CDNs; all assets are vendored
+- Compose uses bind mounts under `.data/` for persistence
