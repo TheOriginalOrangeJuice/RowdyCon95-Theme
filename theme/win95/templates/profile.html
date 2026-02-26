@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="window win95-window" data-window-id="profile" data-window-title="User Profile" style="--win95-top: 90px; --win95-left: 180px; --win95-width: min(940px, 92vw); --win95-height: min(560px, 72vh);" role="dialog" aria-label="Profile">
+  <div class="title-bar">
+    <div class="title-bar-text">User Profile</div>
+    <div class="title-bar-controls">
+      <button type="button" data-action="minimize" aria-label="Minimize"></button>
+      <button type="button" data-action="close" aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    <div class="notepad">
+      <h2>{{ user.name }}</h2>
+      {% if user.team_id %}
+        <p>Team: <a href="{{ url_for('teams.public', team_id=user.team_id) }}">{{ user.team.name }}</a></p>
+      {% endif %}
+      {% if user.affiliation %}
+        <p>Affiliation: {{ user.affiliation }}</p>
+      {% endif %}
+      {% if user.country %}
+        <p>Country: {{ lookup_country_code(user.country) }}</p>
+      {% endif %}
+      {% if account %}
+        <p>Score: {{ account.get_score(admin=True) }}</p>
+      {% endif %}
+    </div>
+
+    {% set solves = user.solves %}
+    {% if solves %}
+      <h3>Solves</h3>
+      <div class="list-view">
+        <table>
+          <thead>
+            <tr>
+              <th>Challenge</th>
+              <th>Category</th>
+              <th>Value</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for solve in solves %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('challenges.listing') }}#{{ solve.challenge.name }}-{{ solve.challenge.id }}">
+                    {{ solve.challenge.name }}
+                  </a>
+                </td>
+                <td>{{ solve.challenge.category }}</td>
+                <td>{{ solve.challenge.value }}</td>
+                <td><span data-time="{{ solve.date | isoformat }}"></span></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>No solves yet.</p>
+    {% endif %}
+  </div>
+  <div class="resize-handle" aria-hidden="true"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ Assets.js("assets/js/users/private.js", theme="core") }}
+  {{ super() }}
+{% endblock %}

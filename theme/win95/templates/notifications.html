@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="window win95-window" data-window-id="notifications" data-window-title="System Notifications" style="--win95-top: 100px; --win95-left: 200px; --win95-width: min(820px, 90vw); --win95-height: min(520px, 68vh);" role="dialog" aria-label="Notifications">
+  <div class="title-bar">
+    <div class="title-bar-text">System Notifications</div>
+    <div class="title-bar-controls">
+      <button type="button" data-action="minimize" aria-label="Minimize"></button>
+      <button type="button" data-action="close" aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    {% if not notifications %}
+      <h3>There are no notifications yet.</h3>
+    {% endif %}
+    {% for notification in notifications %}
+      <fieldset>
+        <legend>{{ notification.title }}</legend>
+        <p>{{ notification.html }}</p>
+        <small><span data-time="{{ notification.date | isoformat }}"></span></small>
+      </fieldset>
+    {% endfor %}
+  </div>
+  <div class="resize-handle" aria-hidden="true"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ Assets.js("assets/js/notifications.js", theme="core") }}
+  {{ super() }}
+{% endblock %}

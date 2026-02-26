@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Note">
+  <rect x="6" y="4" width="20" height="24" fill="#fff9c4" stroke="#000" stroke-width="1"/>
+  <line x1="9" y1="10" x2="23" y2="10" stroke="#000" stroke-width="1"/>
+  <line x1="9" y1="14" x2="23" y2="14" stroke="#000" stroke-width="1"/>
+  <line x1="9" y1="18" x2="23" y2="18" stroke="#000" stroke-width="1"/>
+</svg>

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="window win95-window win95-dialog" data-window-id="login" data-window-title="Log In" style="--win95-top: 120px; --win95-left: 220px; --win95-width: min(520px, 92vw); --win95-height: auto;" role="dialog" aria-label="Login">
+  <div class="title-bar">
+    <div class="title-bar-text">Log In</div>
+    <div class="title-bar-controls">
+      <button type="button" data-action="close" aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    {% if integrations.mlc() %}
+      <a class="button" href="{{ url_for('auth.oauth_login') }}">Login with Major League Cyber</a>
+      <hr>
+    {% endif %}
+
+    {% with form = Forms.auth.LoginForm() %}
+      <form method="post" accept-charset="utf-8">
+        <div class="form-row">
+          <label for="{{ form.name.id }}"><strong>{{ form.name.label }}</strong></label>
+          {{ form.name(class="win95-input", value=name, autocomplete="username email") }}
+        </div>
+        <div class="form-row">
+          <label for="{{ form.password.id }}"><strong>{{ form.password.label }}</strong></label>
+          {{ form.password(class="win95-input", value=password, autocomplete="current-password") }}
+        </div>
+        <div class="window-toolbar">
+          <a href="{{ url_for('auth.reset_password') }}">Forgot your password?</a>
+          {{ form.submit(class="button") }}
+        </div>
+        {{ form.nonce() }}
+      </form>
+    {% endwith %}
+  </div>
+</div>
+{% endblock %}

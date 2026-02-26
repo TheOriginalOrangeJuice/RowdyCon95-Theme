@@ -1,0 +1,56 @@
+{% macro render_field(field, show_label=True) -%}
+  <div class="form-row">
+    {% if show_label %}
+      <label for="{{ field.id }}"><strong>{{ field.label }}</strong></label>
+    {% endif %}
+    {{ field(class="win95-input") }}
+    {% if field.errors %}
+      <div class="notice">
+        {% for error in field.errors %}{{ error }}{% endfor %}
+      </div>
+    {% endif %}
+  </div>
+{%- endmacro %}
+
+{% macro render_extra_fields(fields, show_labels=True, show_optionals=True, show_descriptions=True) -%}
+  {% for field in fields %}
+    {% if field.field_type == "text" %}
+      <div class="form-row">
+        {% if show_labels %}
+          <label for="{{ field.id }}"><strong>{{ field.label }}</strong></label>
+        {% endif %}
+        {% if show_optionals and field.flags.required is false %}
+          <small class="text-muted">(Optional)</small>
+        {% endif %}
+        {{ field(class="win95-input") }}
+        {% if show_descriptions and field.description %}
+          <small class="text-muted">{{ field.description }}</small>
+        {% endif %}
+      </div>
+    {% elif field.field_type == "boolean" %}
+      <div class="form-row">
+        <label for="{{ field.id }}"><strong>{{ field.label }}</strong></label>
+        {% if show_optionals and field.flags.required is false %}
+          <small class="text-muted">(Optional)</small>
+        {% endif %}
+        <div>
+          {{ field(class="win95-input") }}
+        </div>
+        {% if show_descriptions and field.description %}
+          <small class="text-muted">{{ field.description }}</small>
+        {% endif %}
+      </div>
+    {% elif field.field_type == "select" %}
+      <div class="form-row">
+        <label for="{{ field.id }}"><strong>{{ field.label }}</strong></label>
+        {% if show_optionals and field.flags.required is false %}
+          <small class="text-muted">(Optional)</small>
+        {% endif %}
+        {{ field(class="win95-input") }}
+        {% if show_descriptions and field.description %}
+          <small class="text-muted">{{ field.description }}</small>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endfor %}
+{%- endmacro %}

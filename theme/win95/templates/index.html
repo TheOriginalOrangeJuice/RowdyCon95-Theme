@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="window win95-window" data-window-id="home" data-window-title="My Computer" style="--win95-top: 90px; --win95-left: 120px; --win95-width: min(860px, 92vw); --win95-height: min(520px, 70vh);" role="dialog" aria-label="My Computer">
+  <div class="title-bar">
+    <div class="title-bar-text">My Computer</div>
+    <div class="title-bar-controls">
+      <button type="button" data-action="minimize" aria-label="Minimize"></button>
+      <button type="button" data-action="close" aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    <div class="window-toolbar">
+      <span>Address:</span>
+      <input type="text" value="C:\\RowdyCon" aria-label="Address bar" readonly>
+    </div>
+    <h3 class="explorer-title">Welcome to {{ Configs.ctf_name }}</h3>
+    <div class="list-view" role="list">
+      <table aria-label="Shortcuts">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="{{ request.script_root }}/challenges"><img src="{{ url_for('views.themes_beta', path='img/icons/folder.svg') }}" alt=""> Challenges</a></td>
+            <td>Browse categories and submit flags.</td>
+          </tr>
+          {% if Configs.score_visibility != 'admins' %}
+          <tr>
+            <td><a href="{{ request.script_root }}/scoreboard"><img src="{{ url_for('views.themes_beta', path='img/icons/trophy.svg') }}" alt=""> Scoreboard</a></td>
+            <td>Track standings and stats.</td>
+          </tr>
+          {% endif %}
+          {% if Configs.user_mode == 'teams' %}
+          <tr>
+            <td><a href="{{ request.script_root }}/teams"><img src="{{ url_for('views.themes_beta', path='img/icons/team.svg') }}" alt=""> Teams</a></td>
+            <td>Network Neighborhood for crews.</td>
+          </tr>
+          {% endif %}
+          {% if Configs.account_visibility != 'admins' %}
+          <tr>
+            <td><a href="{{ request.script_root }}/users"><img src="{{ url_for('views.themes_beta', path='img/icons/users.svg') }}" alt=""> Users</a></td>
+            <td>All explorers in the system.</td>
+          </tr>
+          {% endif %}
+          {% if authed() %}
+          <tr>
+            <td><a href="{{ url_for('users.private') }}"><img src="{{ url_for('views.themes_beta', path='img/icons/key.svg') }}" alt=""> Profile</a></td>
+            <td>Your identity and solves.</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td><a href="{{ url_for('auth.login') }}"><img src="{{ url_for('views.themes_beta', path='img/icons/key.svg') }}" alt=""> Login</a></td>
+            <td>Authenticate to play.</td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+    <div class="status-bar">System ready - {{ Configs.ctf_name }}</div>
+  </div>
+  <div class="resize-handle" aria-hidden="true"></div>
+</div>
+{% endblock %}

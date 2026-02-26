@@ -1,0 +1,13 @@
+<div>
+  {% for info in infos %}
+    <div class="notice" role="alert">
+      <span>{{ info }}</span>
+    </div>
+  {% endfor %}
+
+  {% for error in errors %}
+    <div class="notice" role="alert">
+      <span>{{ error }}</span>
+    </div>
+  {% endfor %}
+</div>

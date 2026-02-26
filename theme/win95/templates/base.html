@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="{{ get_locale() }}">
+<head>
+  <title>{{ title or Configs.ctf_name }}</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="{{ Configs.ctf_small_icon }}" type="image/x-icon">
+
+  {{ meta | safe }}
+
+  {% block stylesheets %}
+    {{ Assets.css("assets/scss/main.scss", theme="core") }}
+    <link rel="stylesheet" href="{{ url_for('views.themes_beta', path='css/98.css') }}">
+    <link rel="stylesheet" href="{{ url_for('views.themes_beta', path='css/win95.css') }}">
+  {% endblock %}
+
+  {{ Plugins.styles }}
+
+  {{ Assets.js("assets/js/color_mode_switcher.js", theme="core", type=None) }}
+
+  <script type="text/javascript">
+    window.init = {
+      "urlRoot": "{{ request.script_root }}",
+      "csrfNonce": "{{ Session.nonce }}",
+      "userMode": "{{ Configs.user_mode }}",
+      "userId": {{ Session.id }},
+      "userName": {{ User.name | tojson }},
+      "userEmail": {{ User.email | tojson }},
+      "userVerified": {{ User.verified | tojson }},
+      "teamId": {{ Team.id | tojson }},
+      "teamName": {{ Team.name | tojson }},
+      "start": {{ Configs.start | tojson }},
+      "end": {{ Configs.end | tojson }},
+      "themeSettings": {{ Configs.theme_settings | tojson }},
+      "eventSounds": [
+        "/themes/core/static/sounds/notification.webm",
+        "/themes/core/static/sounds/notification.mp3"
+      ]
+    };
+  </script>
+
+  {{ Configs.theme_header }}
+</head>
+<body data-theme="win95">
+  <div id="desktop" class="desktop" role="application">
+    <div class="desktop-icons" aria-label="Desktop shortcuts">
+      <a class="desktop-icon" href="{{ request.script_root }}/" aria-label="Home">
+        <img src="{{ url_for('views.themes_beta', path='img/icons/computer.svg') }}" alt="">
+        <span>My Computer</span>
+      </a>
+      <a class="desktop-icon" href="{{ request.script_root }}/challenges" aria-label="Challenges">
+        <img src="{{ url_for('views.themes_beta', path='img/icons/folder.svg') }}" alt="">
+        <span>Challenges</span>
+      </a>
+      {% if Configs.score_visibility != 'admins' %}
+      <a class="desktop-icon" href="{{ request.script_root }}/scoreboard" aria-label="Scoreboard">
+        <img src="{{ url_for('views.themes_beta', path='img/icons/trophy.svg') }}" alt="">
+        <span>Scoreboard</span>
+      </a>
+      {% endif %}
+      {% if Configs.account_visibility != 'admins' %}
+      <a class="desktop-icon" href="{{ request.script_root }}/users" aria-label="Users">
+        <img src="{{ url_for('views.themes_beta', path='img/icons/users.svg') }}" alt="">
+        <span>Users</span>
+      </a>
+      {% if Configs.user_mode == 'teams' %}
+      <a class="desktop-icon" href="{{ request.script_root }}/teams" aria-label="Teams">
+        <img src="{{ url_for('views.themes_beta', path='img/icons/team.svg') }}" alt="">
+        <span>Teams</span>
+      </a>
+      {% endif %}
+      {% endif %}
+    </div>
+
+    <main id="desktop-windows" class="desktop-windows" role="main">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <div
+    id="win95-assistant"
+    class="win95-assistant"
+    data-authed="{{ 'true' if authed() else 'false' }}"
+    data-registration="{{ 'true' if registration_visible() else 'false' }}"
+    role="complementary"
+    aria-live="polite"
+  >
+    <div class="assistant-bubble">
+      <div class="assistant-title">Clippy says</div>
+      <div data-assistant-text></div>
+      <div class="assistant-controls">
+        <button type="button" data-assistant-next>Next tip</button>
+        <button type="button" data-assistant-hide>Hide</button>
+      </div>
+    </div>
+    <div class="assistant-figure" aria-hidden="true">
+      <img src="{{ url_for('views.themes_beta', path='img/icons/clippy.svg') }}" alt="">
+    </div>
+  </div>
+
+  <nav id="start-menu" class="start-menu" aria-label="Start menu">
+    <div class="start-menu-header">RowdyCon 95</div>
+    <ul class="start-menu-list">
+      <li><a href="{{ request.script_root }}/"><img src="{{ url_for('views.themes_beta', path='img/icons/computer.svg') }}" alt="">Home</a></li>
+      <li><a href="{{ request.script_root }}/challenges"><img src="{{ url_for('views.themes_beta', path='img/icons/folder.svg') }}" alt="">Challenges</a></li>
+      {% if Configs.score_visibility != 'admins' %}
+      <li><a href="{{ request.script_root }}/scoreboard"><img src="{{ url_for('views.themes_beta', path='img/icons/trophy.svg') }}" alt="">Scoreboard</a></li>
+      {% endif %}
+      {% if Configs.user_mode == 'teams' %}
+      <li><a href="{{ request.script_root }}/teams"><img src="{{ url_for('views.themes_beta', path='img/icons/team.svg') }}" alt="">Teams</a></li>
+      {% endif %}
+      {% if Configs.account_visibility != 'admins' %}
+      <li><a href="{{ request.script_root }}/users"><img src="{{ url_for('views.themes_beta', path='img/icons/users.svg') }}" alt="">Users</a></li>
+      {% endif %}
+      {% if Plugins.user_menu_pages %}
+        {% for page in Plugins.user_menu_pages %}
+        <li>
+          <a href="{{ page.route }}" {% if page.link_target %}target="{{ page.link_target }}"{% endif %}>
+            <img src="{{ url_for('views.themes_beta', path='img/icons/note.svg') }}" alt="">
+            {{ page.title }}
+          </a>
+        </li>
+        {% endfor %}
+      {% endif %}
+      {% if authed() %}
+      <li><a href="{{ url_for('users.private') }}"><img src="{{ url_for('views.themes_beta', path='img/icons/key.svg') }}" alt="">Profile</a></li>
+      <li><a href="{{ url_for('views.notifications') }}"><img src="{{ url_for('views.themes_beta', path='img/icons/bell.svg') }}" alt="">Notifications</a></li>
+      {% if is_admin() %}
+      <li><a href="{{ url_for('admin.view') }}"><img src="{{ url_for('views.themes_beta', path='img/icons/globe.svg') }}" alt="">Admin Panel</a></li>
+      {% endif %}
+      <li><a href="{{ url_for('auth.logout') }}"><img src="{{ url_for('views.themes_beta', path='img/icons/key.svg') }}" alt="">Log Out</a></li>
+      {% else %}
+      {% if registration_visible() %}
+      <li><a href="{{ url_for('auth.register') }}"><img src="{{ url_for('views.themes_beta', path='img/icons/key.svg') }}" alt="">Register</a></li>
+      {% endif %}
+      <li><a href="{{ url_for('auth.login') }}"><img src="{{ url_for('views.themes_beta', path='img/icons/key.svg') }}" alt="">Log In</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+
+  <div id="taskbar" class="taskbar">
+    <button id="start-button" class="start-button" type="button">Start</button>
+    <div id="taskbar-tasks" class="taskbar-tasks" aria-label="Open windows"></div>
+    <div class="taskbar-tray" aria-label="System tray">
+      <button class="tray-toggle" type="button" data-setting="sound" aria-pressed="false">Sound</button>
+      <button class="tray-toggle" type="button" data-setting="assistant" aria-pressed="true">Helper</button>
+      <button class="tray-toggle" type="button" data-setting="contrast" aria-pressed="false">Contrast</button>
+      <button class="tray-toggle" type="button" data-setting="motion" aria-pressed="false">Motion</button>
+      <div id="tray-clock" class="tray-clock">--:--</div>
+    </div>
+  </div>
+
+  {% include "macros/modals.html" %}
+
+  {% block scripts %}
+    {{ Assets.js("assets/js/page.js", theme="core") }}
+    <script defer src="{{ url_for('views.themes_beta', path='js/theme-settings.js') }}"></script>
+    <script defer src="{{ url_for('views.themes_beta', path='js/windows.js') }}"></script>
+    <script defer src="{{ url_for('views.themes_beta', path='js/taskbar.js') }}"></script>
+    <script defer src="{{ url_for('views.themes_beta', path='js/assistant.js') }}"></script>
+  {% endblock %}
+
+  {{ Plugins.scripts }}
+  {{ Configs.theme_footer }}
+</body>
+</html>

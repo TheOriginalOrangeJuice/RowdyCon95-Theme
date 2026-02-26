@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="window win95-window" data-window-id="challenges" data-window-title="Challenges Explorer" style="--win95-top: 80px; --win95-left: 140px; --win95-width: min(1040px, 92vw); --win95-height: min(620px, 74vh);" role="dialog" aria-label="Challenges">
+  <div class="title-bar">
+    <div class="title-bar-text">Challenges Explorer</div>
+    <div class="title-bar-controls">
+      <button type="button" data-action="minimize" aria-label="Minimize"></button>
+      <button type="button" data-action="close" aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    <div x-data="ChallengeBoard" x-init="selectedCategory = null" @load-challenges.window="loadChallenges()" @load-challenge.window="loadChallenge($event.detail)">
+      <div
+        x-ref="challengeWindow" id="challenge-window" class="modal fade" tabindex="-1" role="dialog"
+        data-bs-backdrop="false" data-bs-keyboard="true" data-bs-focus="false"
+        x-data="" x-html="$store.challenge.data.view"
+      ></div>
+
+      <div x-show="!loaded">
+        <p>Loading challenges...</p>
+      </div>
+
+      <div x-show="loaded">
+        <div class="win95-layout">
+          <div class="tree-view" aria-label="Categories">
+            <strong>Categories</strong>
+            <div>
+              <button type="button" :class="{ 'is-active': selectedCategory === null }" @click="selectedCategory = null">All</button>
+            </div>
+            <template x-for="(category, idx) in getCategories()" :key="idx">
+              <div>
+                <button type="button" :class="{ 'is-active': selectedCategory === category }" @click="selectedCategory = category" x-text="category"></button>
+              </div>
+            </template>
+          </div>
+          <div class="list-view" aria-label="Challenges list">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Value</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="(c, cidx) in getChallenges(selectedCategory)" :key="c.id">
+                  <tr
+                    @dblclick="loadChallenge(c.id)"
+                    :data-challenge-id="c.id"
+                    :data-solved="c.solved_by_me ? 'true' : 'false'"
+                    :class="{ 'challenge-row-solved': c.solved_by_me }"
+                  >
+                    <td x-text="c.name"></td>
+                    <td x-text="c.category"></td>
+                    <td x-text="c.value"></td>
+                    <td>
+                      <span class="challenge-status" x-text="c.solved_by_me ? 'Solved' : 'Open'"></span>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="status-bar">
+          Double-click a challenge to open Notepad.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="resize-handle" aria-hidden="true"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ Assets.js("assets/js/challenges.js", theme="core") }}
+  <script defer src="{{ url_for('views.themes_beta', path='js/challenge-tracker.js') }}"></script>
+  {{ super() }}
+{% endblock %}

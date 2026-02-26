@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="window win95-window" data-window-id="users" data-window-title="User Directory" style="--win95-top: 100px; --win95-left: 160px; --win95-width: min(980px, 92vw); --win95-height: min(540px, 70vh);" role="dialog" aria-label="Users">
+  <div class="title-bar">
+    <div class="title-bar-text">User Directory</div>
+    <div class="title-bar-controls">
+      <button type="button" data-action="minimize" aria-label="Minimize"></button>
+      <button type="button" data-action="close" aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    {% if q and field %}
+      <p>Searching for users with <strong>{{ field }}</strong> matching <strong>{{ q }}</strong></p>
+      <p>Page {{ users.page }} of {{ users.total }} results</p>
+    {% endif %}
+
+    {% with form = Forms.users.PublicUserSearchForm(field=field, q=q) %}
+      <form method="GET" class="search-form">
+        <div>
+          <strong>Filter field</strong>
+          {{ form.field(class="win95-input") }}
+        </div>
+        <div>
+          <strong>Search</strong>
+          {{ form.q(class="win95-input", placeholder=form.q.description) }}
+        </div>
+        <div>
+          <button type="submit">Search</button>
+        </div>
+      </form>
+    {% endwith %}
+
+    {% set user_items = users.items if users.items is defined else users %}
+    <div class="list-view">
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Website</th>
+            <th class="d-none d-md-table-cell">Affiliation</th>
+            <th class="d-none d-md-table-cell">Country</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in user_items %}
+            <tr>
+              <td>
+                {% if scores_visible() %}
+                  <a href="{{ url_for('users.public', user_id=user.id) }}">{{ user.name | truncate(50) }}</a>
+                {% else %}
+                  <span>{{ user.name | truncate(50) }}</span>
+                {% endif %}
+                {% if user.bracket_id %}
+                  <span class="badge">{{ user.bracket.name }}</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if user.website and (user.website.startswith('http://') or user.website.startswith('https://')) %}
+                  <a href="{{ user.website }}" target="_blank" rel="noopener">Visit</a>
+                {% endif %}
+              </td>
+              <td class="d-none d-md-table-cell">{{ user.affiliation | default("", true) | truncate(50) }}</td>
+              <td class="d-none d-md-table-cell">
+                {% if user.country %}
+                  {{ lookup_country_code(user.country) }}
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if user_items | length == 0 %}
+        <p>No users found.</p>
+      {% endif %}
+    </div>
+
+    {% if users.pages > 1 %}
+      <div class="status-bar">
+        Page
+        {% if users.page != 1 %}
+          <a href="{{ prev_page }}">&lt;&lt;&lt;</a>
+        {% endif %}
+        <select class="page-select">
+          {% for page in range(1, users.pages + 1) %}
+            <option {% if users.page == page %}selected{% endif %}>{{ page }}</option>
+          {% endfor %}
+        </select>
+        {% if users.next_num %}
+          <a href="{{ next_page }}">&gt;&gt;&gt;</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+  <div class="resize-handle" aria-hidden="true"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ Assets.js("assets/js/users/list.js", theme="core") }}
+  {{ super() }}
+{% endblock %}

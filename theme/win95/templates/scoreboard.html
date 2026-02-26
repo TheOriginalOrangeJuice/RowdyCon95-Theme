@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="window win95-window" data-window-id="scoreboard" data-window-title="Internet Explorer - Scoreboard" style="--win95-top: 70px; --win95-left: 160px; --win95-width: min(980px, 92vw); --win95-height: min(560px, 70vh);" role="dialog" aria-label="Scoreboard">
+  <div class="title-bar">
+    <div class="title-bar-text">Internet Explorer - Scoreboard</div>
+    <div class="title-bar-controls">
+      <button type="button" data-action="minimize" aria-label="Minimize"></button>
+      <button type="button" data-action="close" aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    <div class="window-toolbar">
+      <button type="button" disabled>Back</button>
+      <button type="button" disabled>Forward</button>
+      <button type="button" disabled>Stop</button>
+      <input type="text" value="{{ request.script_root }}/scoreboard" aria-label="Address bar" readonly>
+    </div>
+
+    <div id="score-graph" class="align-items-center" :class="{'d-flex': show, 'd-none': !show}" x-data="ScoreboardDetail" x-ref="scoregraph" @bracket-change.window="activeBracket=$event.detail; update();">
+      <div class="col-md-12 text-center">
+        <span>Loading scoreboard...</span>
+      </div>
+    </div>
+
+    <div class="window-toolbar">
+      <label for="score-filter"><strong>Find:</strong></label>
+      <input id="score-filter" type="text" placeholder="Type to filter" aria-label="Filter scoreboard">
+    </div>
+
+    <div id="scoreboard" class="row" x-data="ScoreboardList">
+      <template x-if="brackets.length && standings.length">
+        <div class="col-md-12 py-3">
+          <nav class="nav nav-pills nav-fill">
+            <button :class="{'nav-link': true, 'active': !activeBracket}" @click="activeBracket=null">All</button>
+            <template x-for="bracket in brackets">
+              <button :class="{'nav-link': true, 'active': activeBracket == bracket.id}" x-text="bracket.name" @click="activeBracket=bracket.id"></button>
+            </template>
+          </nav>
+        </div>
+      </template>
+
+      <div class="col-md-12" x-show="standings.length">
+        <div class="list-view">
+          <table class="table table-striped align-middle" id="scoreboard-table">
+            <thead>
+              <tr>
+                <th style="width: 50px">Place</th>
+                <th class="text-start ps-3">{{ get_mode_as_word(capitalize=True) }}</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(standing, index) in standings.filter(i => activeBracket ? i.bracket_id==activeBracket : true)">
+                <tr>
+                  <th scope="row" class="text-center" x-text="index + 1"></th>
+                  <td class="text-start"><a :href="standing.account_url" x-text="standing.name"></a></td>
+                  <td x-text="standing.score"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="col-md-12" x-show="! standings.length">
+        <h3 class="text-center text-muted">Scoreboard is empty</h3>
+      </div>
+    </div>
+  </div>
+  <div class="resize-handle" aria-hidden="true"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ Assets.js("assets/js/scoreboard.js", theme="core") }}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const input = document.getElementById("score-filter");
+      const table = document.getElementById("scoreboard-table");
+      if (!input || !table) {
+        return;
+      }
+      input.addEventListener("input", function () {
+        const query = input.value.toLowerCase();
+        table.querySelectorAll("tbody tr").forEach(function (row) {
+          const text = row.textContent.toLowerCase();
+          row.style.display = text.includes(query) ? "" : "none";
+        });
+      });
+    });
+  </script>
+  {{ super() }}
+{% endblock %}

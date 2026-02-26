@@ -1,0 +1,112 @@
+<div :class="getStyles()" role="document" x-data="Challenge" x-init='id = {{ challenge.id }}; max_attempts = {{ max_attempts }}; attempts = {{ attempts }}; ratingValue = {{ (rating.get("value") if rating else None) | tojson }}; ratingReview = {{ (rating.get("review", "") if rating else None) | tojson }};' x-effect="if (response) { window.dispatchEvent(new CustomEvent('win95-challenge-status', { detail: { id: id, status: response.data.status, attempts: attempts, maxAttempts: max_attempts } })) }">
+  <div class="modal-content window win95-modal">
+    <div class="title-bar">
+      <div class="title-bar-text">Notepad - {{ challenge.name }}</div>
+      <div class="title-bar-controls">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+    </div>
+    <div class="window-body">
+      <div class="win95-tabs" role="tablist">
+        <button class="tab-button nav-link active" data-bs-target="#challenge-pane" type="button" @click="showChallenge()">Challenge</button>
+        <button class="tab-button nav-link" data-bs-target="#solution-pane" type="button" x-show="getSolutionId()" @click="showSolution()">Solution</button>
+      </div>
+
+      <div class="tab-content">
+        <div class="tab-pane fade show active" id="challenge-pane" role="tabpanel">
+          <div class="notepad">
+            <h3>{{ challenge.name }}</h3>
+            <p><strong>Value:</strong> {{ challenge.value }}</p>
+            {% if tags %}
+              <p>
+                {% for tag in tags %}
+                  <span class="badge">{{ tag }}</span>
+                {% endfor %}
+              </p>
+            {% endif %}
+            <div class="challenge-desc">{{ challenge.html }}</div>
+
+            {% if challenge.connection_info %}
+              <p>
+                <strong>Connection:</strong>
+                {% set conn = challenge.connection_info %}
+                {% if conn.startswith("http") %}
+                  {{ conn | urlize(target="_blank") }}
+                {% else %}
+                  <code>{{ conn }}</code>
+                {% endif %}
+              </p>
+            {% endif %}
+
+            {% if hints %}
+              <div class="challenge-hints">
+                <strong>Hints</strong>
+                {% for hint in hints | sort(attribute="cost") %}
+                  <div x-data="Hint" x-init="id = {{ hint.id }}">
+                    {% if hint.content %}
+                      <details>
+                        <summary>View Hint{% if hint.title %}: {{ hint.title }}{% endif %}</summary>
+                        <div>{{ hint.html | safe }}</div>
+                      </details>
+                    {% else %}
+                      <details @toggle="showHint(event)">
+                        {% if hint.title %}
+                          <summary>{{ hint.title }} (Cost: {{ hint.cost }} point{{ hint.cost|pluralize }})</summary>
+                        {% else %}
+                          <summary>Unlock Hint for {{ hint.cost }} point{{ hint.cost|pluralize }}</summary>
+                        {% endif %}
+                        <div x-html="html"></div>
+                      </details>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            {% if files %}
+              <div class="challenge-files">
+                <strong>Files</strong>
+                <ul>
+                  {% for file in files %}
+                    {% set segments = file.split('/') %}
+                    {% set token = file.split('?') | last %}
+                    {% if token %}
+                      {% set filename = segments | last | replace("?" + token, "") %}
+                    {% else %}
+                      {% set filename = segments | last %}
+                    {% endif %}
+                    <li><a href="{{ file }}">{{ filename }}</a></li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+          </div>
+
+          <template x-if="max_attempts > 0">
+            <p>
+              <span x-text="attempts"></span>/<span x-text="max_attempts"></span> attempt<span x-show="max_attempts !== 1">s</span>
+            </p>
+          </template>
+
+          <div class="cmd-input">
+            <input id="challenge-id" class="challenge-id" type="hidden" value="{{ challenge.id }}">
+            <input id="challenge-input" class="challenge-input" type="text" name="submission" placeholder="Flag" x-model="submission" @keyup.enter="submitChallenge()">
+            <button id="challenge-submit" class="challenge-submit" type="button" @click.debounce.500ms="submitChallenge()">Submit</button>
+          </div>
+
+          <div class="notification-row">
+            <template x-if="response">
+              <div class="notice" role="alert">
+                <strong x-text="response.data.message"></strong>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <div class="tab-pane fade" id="solution-pane" role="tabpanel">
+          <div class="notepad" x-html="solution"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

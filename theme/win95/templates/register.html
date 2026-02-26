@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="window win95-window win95-dialog" data-window-id="register" data-window-title="Register" style="--win95-top: 120px; --win95-left: 220px; --win95-width: min(560px, 92vw); --win95-height: auto;" role="dialog" aria-label="Register">
+  <div class="title-bar">
+    <div class="title-bar-text">Register</div>
+    <div class="title-bar-controls">
+      <button type="button" data-action="close" aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    {% if integrations.mlc() %}
+      <a class="button" href="{{ url_for('auth.oauth_login') }}">Login with Major League Cyber</a>
+      <hr>
+    {% endif %}
+
+    {% with form = Forms.auth.RegistrationForm() %}
+      {% from "macros/forms.html" import render_extra_fields %}
+      <form method="post" accept-charset="utf-8" role="form">
+        <div class="form-row">
+          <label for="{{ form.name.id }}"><strong>{{ form.name.label }}</strong></label>
+          {{ form.name(class="win95-input", value=name, autocomplete="username") }}
+          <small>Your username on the site</small>
+        </div>
+        <div class="form-row">
+          <label for="{{ form.email.id }}"><strong>{{ form.email.label }}</strong></label>
+          {{ form.email(class="win95-input", value=email, autocomplete="email") }}
+          <small>Never shown to the public</small>
+        </div>
+        <div class="form-row">
+          <label for="{{ form.password.id }}"><strong>{{ form.password.label }}</strong></label>
+          {{ form.password(class="win95-input", value=password, autocomplete="new-password") }}
+        </div>
+
+        {{ form.nonce() }}
+        {{ render_extra_fields(form.extra) }}
+
+        <div class="window-toolbar">
+          {{ form.submit(class="button") }}
+        </div>
+
+        {% if Configs.tos_or_privacy %}
+          <p>
+            By registering, you agree to the
+            <a href="{{ Configs.privacy_link }}" target="_blank">privacy policy</a>
+            and <a href="{{ Configs.tos_link }}" target="_blank">terms of service</a>
+          </p>
+        {% endif %}
+      </form>
+    {% endwith %}
+  </div>
+</div>
+{% endblock %}
