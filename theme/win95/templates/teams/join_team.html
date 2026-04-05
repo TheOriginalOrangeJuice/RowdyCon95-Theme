@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="window win95-window" data-window-id="team-join" data-window-title="Join Team" style="--win95-top: 102px; --win95-left: 210px; --win95-width: min(680px, 92vw); --win95-height: min(420px, 60vh);" role="dialog" aria-label="Join Team">
+  <div class="title-bar">
+    <div class="title-bar-text">Join Team</div>
+    <div class="title-bar-controls">
+      <button type="button" data-action="minimize" aria-label="Minimize"></button>
+      <button type="button" data-action="close" aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    {% include "components/errors.html" %}
+
+    {% with form = Forms.teams.TeamJoinForm() %}
+      <form method="POST" class="search-form">
+        <div class="form-row">
+          <b>{{ form.name.label(class="form-label") }}</b>
+          {{ form.name(class="win95-input") }}
+        </div>
+
+        <div class="form-row">
+          <b>{{ form.password.label(class="form-label") }}</b>
+          {{ form.password(class="win95-input") }}
+        </div>
+
+        <div>
+          {{ form.submit(class="button") }}
+        </div>
+
+        {{ form.nonce() }}
+      </form>
+    {% endwith %}
+  </div>
+  <div class="resize-handle" aria-hidden="true"></div>
+</div>
+{% endblock %}

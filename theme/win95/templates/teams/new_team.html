@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="window win95-window" data-window-id="team-new" data-window-title="Create Team" style="--win95-top: 92px; --win95-left: 180px; --win95-width: min(720px, 92vw); --win95-height: min(520px, 70vh);" role="dialog" aria-label="Create Team">
+  <div class="title-bar">
+    <div class="title-bar-text">Create Team</div>
+    <div class="title-bar-controls">
+      <button type="button" data-action="minimize" aria-label="Minimize"></button>
+      <button type="button" data-action="close" aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    {% include "components/errors.html" %}
+
+    {% with form = Forms.teams.TeamRegisterForm() %}
+      {% from "macros/forms.html" import render_extra_fields %}
+      <form method="POST" class="search-form">
+        <div class="form-row">
+          <b>{{ form.name.label(class="form-label") }}</b>
+          {{ form.name(class="win95-input") }}
+        </div>
+
+        <div class="form-row">
+          <b>{{ form.password.label(class="form-label") }}</b>
+          {{ form.password(class="win95-input") }}
+        </div>
+
+        {{ render_extra_fields(form.extra) }}
+
+        <p>After creating your team, share the team name and password with teammates so they can join.</p>
+
+        <div>
+          {{ form.submit(class="button") }}
+        </div>
+
+        {{ form.nonce() }}
+      </form>
+    {% endwith %}
+  </div>
+  <div class="resize-handle" aria-hidden="true"></div>
+</div>
+{% endblock %}

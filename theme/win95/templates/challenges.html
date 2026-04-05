@@ -10,7 +10,7 @@
     </div>
   </div>
   <div class="window-body">
-    <div x-data="ChallengeBoard" x-init="selectedCategory = null" @load-challenges.window="loadChallenges()" @load-challenge.window="loadChallenge($event.detail)">
+    <div x-data="ChallengeBoard" @load-challenges.window="loadChallenges()" @load-challenge.window="loadChallenge($event.detail)">
       <div
         x-ref="challengeWindow" id="challenge-window" class="modal fade" tabindex="-1" role="dialog"
         data-bs-backdrop="false" data-bs-keyboard="true" data-bs-focus="false"
@@ -25,16 +25,20 @@
         <div class="win95-layout">
           <div class="tree-view" aria-label="Categories">
             <strong>Categories</strong>
-            <div>
-              <button type="button" :class="{ 'is-active': selectedCategory === null }" @click="selectedCategory = null">All</button>
+            <div class="challenge-category-grid" id="challenge-category-grid">
+              <button type="button" class="category-icon-button is-active" data-category-filter="" aria-pressed="true">
+                <img src="{{ url_for('views.themes_beta', path='img/icons/computer.svg') }}" alt="">
+                <span>All</span>
+              </button>
+              <template x-for="(category, idx) in getCategories()" :key="idx">
+                <button type="button" class="category-icon-button" :data-category-filter="category" :aria-label="'Filter ' + category">
+                  <img src="{{ url_for('views.themes_beta', path='img/icons/folder.svg') }}" :data-category-icon-for="category" alt="">
+                  <span x-text="category"></span>
+                </button>
+              </template>
             </div>
-            <template x-for="(category, idx) in getCategories()" :key="idx">
-              <div>
-                <button type="button" :class="{ 'is-active': selectedCategory === category }" @click="selectedCategory = category" x-text="category"></button>
-              </div>
-            </template>
           </div>
-          <div class="list-view" aria-label="Challenges list">
+          <div class="list-view challenge-list-view" aria-label="Challenges list">
             <table>
               <thead>
                 <tr>
@@ -44,11 +48,13 @@
                   <th>Status</th>
                 </tr>
               </thead>
-              <tbody>
-                <template x-for="(c, cidx) in getChallenges(selectedCategory)" :key="c.id">
+              <tbody class="challenge-list-body">
+                <template x-for="(c, cidx) in getChallenges(null)" :key="c.id">
                   <tr
+                    class="challenge-row"
                     @dblclick="loadChallenge(c.id)"
                     :data-challenge-id="c.id"
+                    :data-category="c.category"
                     :data-solved="c.solved_by_me ? 'true' : 'false'"
                     :class="{ 'challenge-row-solved': c.solved_by_me }"
                   >
@@ -64,7 +70,8 @@
             </table>
           </div>
         </div>
-        <div class="status-bar">
+        <div class="status-bar challenge-status-bar">
+          <span id="challenge-visible-count">0</span>/<span id="challenge-total-count">0</span> shown.
           Double-click a challenge to open Notepad.
         </div>
       </div>

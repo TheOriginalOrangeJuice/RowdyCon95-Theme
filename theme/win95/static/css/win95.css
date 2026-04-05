@@ -107,6 +107,10 @@ textarea:focus {
   pointer-events: none;
 }
 
+.desktop-windows > * {
+  pointer-events: auto;
+}
+
 .desktop-windows .win95-window {
   pointer-events: auto;
 }
@@ -330,6 +334,49 @@ textarea:focus {
   color: #fff;
 }
 
+.challenge-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.category-icon-button {
+  width: 100%;
+  min-height: 88px;
+  padding: 6px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  text-align: center;
+  font-size: 11px;
+}
+
+.category-icon-button img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.category-icon-button span {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-icon-button.is-active {
+  background: #000080;
+  color: #fff;
+}
+
+.challenge-row[hidden] {
+  display: none !important;
+}
+
 .list-view {
   border: 2px inset #808080;
   background: #fff;
@@ -379,6 +426,37 @@ textarea:focus {
 
 .list-view tr.challenge-row-failed:hover {
   background: #ebbbbb;
+}
+
+.scoreboard-window .window-body {
+  color: #000;
+}
+
+.scoreboard-brackets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.scoreboard-brackets button.is-active {
+  background: #000080;
+  color: #fff;
+}
+
+.scoreboard-window #scoreboard-table th,
+.scoreboard-window #scoreboard-table td {
+  color: #000;
+  text-align: left;
+}
+
+.scoreboard-window #scoreboard-table th:first-child,
+.scoreboard-window #scoreboard-table td:first-child {
+  text-align: center;
+}
+
+.scoreboard-window #scoreboard-table a {
+  color: #000080;
+  text-decoration: underline;
 }
 
 .window-toolbar {

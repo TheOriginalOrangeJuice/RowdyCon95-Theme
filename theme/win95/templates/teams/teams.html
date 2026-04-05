@@ -61,7 +61,7 @@
               </td>
               <td>
                 {% if team.website and (team.website.startswith('http://') or team.website.startswith('https://')) %}
-                  <a href="{{ team.website }}" target="_blank" rel="noopener">Visit</a>
+                  <a href="{{ team.website }}" target="_blank" rel="noopener noreferrer">Visit</a>
                 {% endif %}
               </td>
               <td class="d-none d-md-table-cell">{{ team.affiliation | default("", true) | truncate(50) }}</td>

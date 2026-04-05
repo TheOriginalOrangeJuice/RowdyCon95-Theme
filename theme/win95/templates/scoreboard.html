@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="window win95-window" data-window-id="scoreboard" data-window-title="Internet Explorer - Scoreboard" style="--win95-top: 70px; --win95-left: 160px; --win95-width: min(980px, 92vw); --win95-height: min(560px, 70vh);" role="dialog" aria-label="Scoreboard">
+<div class="window win95-window scoreboard-window" data-window-id="scoreboard" data-window-title="Internet Explorer - Scoreboard" style="--win95-top: 70px; --win95-left: 160px; --win95-width: min(980px, 92vw); --win95-height: min(560px, 70vh);" role="dialog" aria-label="Scoreboard">
   <div class="title-bar">
     <div class="title-bar-text">Internet Explorer - Scoreboard</div>
     <div class="title-bar-controls">
@@ -31,10 +31,10 @@
     <div id="scoreboard" class="row" x-data="ScoreboardList">
       <template x-if="brackets.length && standings.length">
         <div class="col-md-12 py-3">
-          <nav class="nav nav-pills nav-fill">
-            <button :class="{'nav-link': true, 'active': !activeBracket}" @click="activeBracket=null">All</button>
+          <nav class="scoreboard-brackets">
+            <button :class="{ 'is-active': !activeBracket }" @click="activeBracket=null">All</button>
             <template x-for="bracket in brackets">
-              <button :class="{'nav-link': true, 'active': activeBracket == bracket.id}" x-text="bracket.name" @click="activeBracket=bracket.id"></button>
+              <button :class="{ 'is-active': activeBracket == bracket.id }" x-text="bracket.name" @click="activeBracket=bracket.id"></button>
             </template>
           </nav>
         </div>
@@ -42,19 +42,19 @@
 
       <div class="col-md-12" x-show="standings.length">
         <div class="list-view">
-          <table class="table table-striped align-middle" id="scoreboard-table">
+          <table id="scoreboard-table">
             <thead>
               <tr>
                 <th style="width: 50px">Place</th>
-                <th class="text-start ps-3">{{ get_mode_as_word(capitalize=True) }}</th>
+                <th>{{ get_mode_as_word(capitalize=True) }}</th>
                 <th>Score</th>
               </tr>
             </thead>
             <tbody>
               <template x-for="(standing, index) in standings.filter(i => activeBracket ? i.bracket_id==activeBracket : true)">
                 <tr>
-                  <th scope="row" class="text-center" x-text="index + 1"></th>
-                  <td class="text-start"><a :href="standing.account_url" x-text="standing.name"></a></td>
+                  <th scope="row" x-text="index + 1"></th>
+                  <td><a :href="standing.account_url" x-text="standing.name"></a></td>
                   <td x-text="standing.score"></td>
                 </tr>
               </template>

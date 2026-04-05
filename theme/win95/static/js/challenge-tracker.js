@@ -1,29 +1,92 @@
 (() => {
-  const STORAGE_KEY = "win95ChallengeStatus";
+  const init = window.init || {};
+  const DEFAULT_ICON = "/themes/win95/static/img/icons/folder.svg";
+  const ALL_ICON = "/themes/win95/static/img/icons/computer.svg";
+
   const classMap = {
     solved: "challenge-row-solved",
     attempted: "challenge-row-attempted",
     failed: "challenge-row-failed",
   };
 
-  const readMap = () => {
+  const keywordIcons = {
+    web: "/themes/win95/static/img/icons/globe.svg",
+    pwn: "/themes/win95/static/img/icons/terminal.svg",
+    reverse: "/themes/win95/static/img/icons/computer.svg",
+    rev: "/themes/win95/static/img/icons/computer.svg",
+    crypto: "/themes/win95/static/img/icons/key.svg",
+    forensics: "/themes/win95/static/img/icons/note.svg",
+    osint: "/themes/win95/static/img/icons/users.svg",
+    misc: "/themes/win95/static/img/icons/folder.svg",
+    cloud: "/themes/win95/static/img/icons/globe.svg",
+    mobile: "/themes/win95/static/img/icons/team.svg",
+    hardware: "/themes/win95/static/img/icons/computer.svg",
+  };
+
+  const parseJSON = (value, fallback) => {
+    if (typeof value !== "string") {
+      return fallback;
+    }
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+      return JSON.parse(value);
     } catch (error) {
-      return {};
+      return fallback;
     }
   };
 
-  const writeMap = map => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
-    } catch (error) {
-      // Ignore storage errors to avoid blocking the UI.
+  const sanitizeIconUrl = value => {
+    if (typeof value !== "string") {
+      return null;
     }
+
+    const icon = value.trim();
+    if (!icon) {
+      return null;
+    }
+
+    const lower = icon.toLowerCase();
+    if (
+      lower.startsWith("javascript:") ||
+      lower.startsWith("data:") ||
+      lower.startsWith("vbscript:")
+    ) {
+      return null;
+    }
+
+    // Keep icons local only. This avoids external fetches and mixed content.
+    if (icon.startsWith("//") || icon.includes("://")) {
+      return null;
+    }
+
+    if (icon.startsWith("/")) {
+      return icon;
+    }
+
+    if (icon.startsWith("themes/") || icon.startsWith("files/")) {
+      return `/${icon}`;
+    }
+
+    return null;
   };
 
-  let statusMap = readMap();
-  let isApplying = false;
+  const iconMap = (() => {
+    const settings = init.themeSettings || {};
+    const raw = settings.win95_category_icons;
+    if (raw && typeof raw === "object") {
+      return raw;
+    }
+    if (typeof raw === "string") {
+      return parseJSON(raw, {});
+    }
+    return {};
+  })();
+
+  let activeCategory = null;
+  const statusMap = new Map();
+  let lastRefresh = 0;
+
+  const rows = () => Array.from(document.querySelectorAll("tr.challenge-row[data-challenge-id]"));
+  const buttons = () => Array.from(document.querySelectorAll("button[data-category-filter]"));
 
   const computeStatus = detail => {
     const status = detail.status;
@@ -35,8 +98,8 @@
     }
 
     if (status === "incorrect") {
-      const attemptsUsed = attempts + 1;
-      if (maxAttempts > 0 && attemptsUsed >= maxAttempts) {
+      // CTFd updates attempts reactively; use the reported count directly.
+      if (maxAttempts > 0 && attempts >= maxAttempts) {
         return "failed";
       }
       return "attempted";
@@ -45,61 +108,155 @@
     return null;
   };
 
-  const applyStatus = (row, status) => {
-    Object.values(classMap).forEach(className => row.classList.remove(className));
-    if (status && classMap[status]) {
-      row.classList.add(classMap[status]);
+  const setStatusCell = (row, status) => {
+    const cell = row.querySelector(".challenge-status");
+    if (!cell) {
+      return;
     }
-    const statusCell = row.querySelector(".challenge-status");
-    if (statusCell) {
-      let nextText = "Open";
-      if (status === "solved") {
-        nextText = "Solved";
-      } else if (status === "attempted") {
-        nextText = "Attempted";
-      } else if (status === "failed") {
-        nextText = "Failed";
-      }
-      if (statusCell.textContent !== nextText) {
-        statusCell.textContent = nextText;
-      }
+
+    let text = "Open";
+    if (status === "solved") {
+      text = "Solved";
+    } else if (status === "attempted") {
+      text = "Attempted";
+    } else if (status === "failed") {
+      text = "Failed";
+    }
+
+    if (cell.textContent !== text) {
+      cell.textContent = text;
     }
   };
 
-  const applyAll = () => {
-    if (isApplying) {
-      return;
+  const applyStatus = (row, status) => {
+    Object.values(classMap).forEach(name => row.classList.remove(name));
+    if (status && classMap[status]) {
+      row.classList.add(classMap[status]);
     }
-    isApplying = true;
-    const rows = document.querySelectorAll("tr[data-challenge-id]");
-    rows.forEach(row => {
+    setStatusCell(row, status);
+  };
+
+  const applyStatuses = () => {
+    rows().forEach(row => {
       const id = row.getAttribute("data-challenge-id");
-      const entry = statusMap[id];
+      const solvedByMe = row.getAttribute("data-solved") === "true";
+      const entry = statusMap.get(id);
       let status = null;
 
-      if (row.dataset.solved === "true") {
+      if (solvedByMe) {
         status = "solved";
-      } else if (entry && entry.status) {
-        status = entry.status;
+        statusMap.delete(id);
+      } else if (entry) {
+        status = entry;
       }
 
       applyStatus(row, status);
     });
-    isApplying = false;
   };
 
-  const observeList = () => {
-    const target = document.querySelector(".list-view tbody");
-    if (!target) {
-      return;
+  const updateStatusBar = () => {
+    const allRows = rows();
+    const visibleRows = allRows.filter(row => !row.hidden);
+    const visibleEl = document.getElementById("challenge-visible-count");
+    const totalEl = document.getElementById("challenge-total-count");
+
+    if (visibleEl) {
+      visibleEl.textContent = String(visibleRows.length);
     }
-    const observer = new MutationObserver(() => {
-      if (!isApplying) {
-        applyAll();
+    if (totalEl) {
+      totalEl.textContent = String(allRows.length);
+    }
+  };
+
+  const applyFilter = () => {
+    rows().forEach(row => {
+      const rowCategory = row.getAttribute("data-category") || "";
+      row.hidden = !!activeCategory && rowCategory !== activeCategory;
+    });
+
+    buttons().forEach(btn => {
+      const category = btn.getAttribute("data-category-filter") || null;
+      const active = category === activeCategory;
+      if (!activeCategory && !category) {
+        btn.classList.add("is-active");
+        btn.setAttribute("aria-pressed", "true");
+      } else {
+        btn.classList.toggle("is-active", active);
+        btn.setAttribute("aria-pressed", active ? "true" : "false");
       }
     });
-    // Only re-apply when rows are added/removed; avoid loops from text/class updates.
-    observer.observe(target, { childList: true });
+
+    updateStatusBar();
+  };
+
+  const getIconForCategory = category => {
+    const normalized = String(category || "").trim().toLowerCase();
+    if (!normalized) {
+      return ALL_ICON;
+    }
+
+    if (iconMap[normalized]) {
+      const mapped = sanitizeIconUrl(iconMap[normalized]);
+      if (mapped) {
+        return mapped;
+      }
+    }
+    if (iconMap[category]) {
+      const mapped = sanitizeIconUrl(iconMap[category]);
+      if (mapped) {
+        return mapped;
+      }
+    }
+
+    const hit = Object.keys(keywordIcons).find(keyword => normalized.includes(keyword));
+    return hit ? keywordIcons[hit] : DEFAULT_ICON;
+  };
+
+  const applyCategoryIcons = () => {
+    const iconNodes = document.querySelectorAll("img[data-category-icon-for]");
+    iconNodes.forEach(node => {
+      const category = node.getAttribute("data-category-icon-for") || "";
+      const nextSrc = getIconForCategory(category);
+      if (node.getAttribute("src") !== nextSrc) {
+        node.setAttribute("src", nextSrc);
+      }
+    });
+  };
+
+  const bindCategoryButtons = () => {
+    // No-op. We use delegated click handling to survive Alpine re-renders.
+  };
+
+  const requestChallengeRefresh = () => {
+    const now = Date.now();
+    if (now - lastRefresh < 3000) {
+      return;
+    }
+    lastRefresh = now;
+    window.dispatchEvent(new CustomEvent("load-challenges"));
+  };
+
+  const refreshUI = () => {
+    bindCategoryButtons();
+    applyCategoryIcons();
+    applyFilter();
+    applyStatuses();
+  };
+
+  const observeChallengeDom = () => {
+    const body = document.querySelector(".challenge-list-body");
+    if (body) {
+      const tableObserver = new MutationObserver(() => {
+        refreshUI();
+      });
+      tableObserver.observe(body, { childList: true });
+    }
+
+    const categories = document.getElementById("challenge-category-grid");
+    if (categories) {
+      const categoryObserver = new MutationObserver(() => refreshUI());
+      categoryObserver.observe(categories, { childList: true, subtree: true });
+    }
   };
 
   window.addEventListener("win95-challenge-status", event => {
@@ -107,24 +264,48 @@
     if (!detail.id) {
       return;
     }
+
     const status = computeStatus(detail);
     if (!status) {
       return;
     }
-    statusMap[detail.id] = {
-      status,
-      updatedAt: Date.now(),
-    };
-    writeMap(statusMap);
-    applyAll();
+
+    statusMap.set(String(detail.id), status);
+    applyStatuses();
+    requestChallengeRefresh();
   });
 
   window.addEventListener("load-challenges", () => {
-    setTimeout(applyAll, 50);
+    setTimeout(() => {
+      refreshUI();
+    }, 80);
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      requestChallengeRefresh();
+    }
+  });
+
+  window.addEventListener("focus", requestChallengeRefresh);
+  document.addEventListener("click", event => {
+    const btn = event.target.closest("button[data-category-filter]");
+    if (!btn) {
+      return;
+    }
+    const category = btn.getAttribute("data-category-filter") || null;
+    activeCategory = category;
+    applyFilter();
   });
 
   document.addEventListener("DOMContentLoaded", () => {
-    applyAll();
-    observeList();
+    refreshUI();
+    observeChallengeDom();
+
+    setInterval(() => {
+      if (!document.hidden) {
+        requestChallengeRefresh();
+      }
+    }, 15000);
   });
 })();

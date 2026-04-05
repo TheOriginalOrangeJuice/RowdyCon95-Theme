@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="window win95-window" data-window-id="team-enroll" data-window-title="Network Setup Wizard" style="--win95-top: 84px; --win95-left: 160px; --win95-width: min(780px, 92vw); --win95-height: min(500px, 68vh);" role="dialog" aria-label="Team enrollment">
+  <div class="title-bar">
+    <div class="title-bar-text">Network Setup Wizard</div>
+    <div class="title-bar-controls">
+      <button type="button" data-action="minimize" aria-label="Minimize"></button>
+      <button type="button" data-action="close" aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    <div class="notepad">
+      <h2>Welcome to {{ Configs.ctf_name }}!</h2>
+      <p>To participate you must either join an existing team or create a new one.</p>
+
+      {% if integrations.mlc() %}
+      <p>
+        <a class="button" href="{{ url_for('auth.oauth_login') }}">Play with Official Team</a>
+      </p>
+      <hr>
+      <p>
+        <a class="button" href="{{ url_for('teams.join') }}">Join Unofficial Team</a>
+        <a class="button" href="{{ url_for('teams.new') }}">Create Unofficial Team</a>
+      </p>
+      {% else %}
+      <p>
+        <a class="button" href="{{ url_for('teams.join') }}">Join Team</a>
+        <a class="button" href="{{ url_for('teams.new') }}">Create Team</a>
+      </p>
+      {% endif %}
+    </div>
+  </div>
+  <div class="resize-handle" aria-hidden="true"></div>
+</div>
+{% endblock %}

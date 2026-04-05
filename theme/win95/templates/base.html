@@ -23,7 +23,7 @@
       "urlRoot": "{{ request.script_root }}",
       "csrfNonce": "{{ Session.nonce }}",
       "userMode": "{{ Configs.user_mode }}",
-      "userId": {{ Session.id }},
+      "userId": {{ Session.id | tojson }},
       "userName": {{ User.name | tojson }},
       "userEmail": {{ User.email | tojson }},
       "userVerified": {{ User.verified | tojson }},
@@ -115,7 +115,11 @@
       {% if Plugins.user_menu_pages %}
         {% for page in Plugins.user_menu_pages %}
         <li>
-          <a href="{{ page.route }}" {% if page.link_target %}target="{{ page.link_target }}"{% endif %}>
+          <a
+            href="{{ page.route }}"
+            {% if page.link_target %}target="{{ page.link_target }}"{% endif %}
+            {% if page.link_target == "_blank" %}rel="noopener noreferrer"{% endif %}
+          >
             <img src="{{ url_for('views.themes_beta', path='img/icons/note.svg') }}" alt="">
             {{ page.title }}
           </a>

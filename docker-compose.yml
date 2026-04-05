@@ -1,19 +1,20 @@
 services:
   ctfd:
     build: .
-    user: root
     restart: always
+    env_file:
+      - .ctfd.env
     ports:
       - "8000:8000"
     environment:
-      - UPLOAD_FOLDER=/var/uploads
-      - DATABASE_URL=mysql+pymysql://ctfd:ctfd@db/ctfd
-      - REDIS_URL=redis://cache:6379
-      - WORKERS=1
-      - LOG_FOLDER=/var/log/CTFd
-      - ACCESS_LOG=-
-      - ERROR_LOG=-
-      - REVERSE_PROXY=true
+      - UPLOAD_FOLDER=${UPLOAD_FOLDER:-/var/uploads}
+      - DATABASE_URL=${DATABASE_URL:-mysql+pymysql://ctfd:${DB_PASSWORD:-ctfd}@db/${DB_NAME:-ctfd}}
+      - REDIS_URL=${REDIS_URL:-redis://cache:6379}
+      - WORKERS=${WORKERS:-1}
+      - LOG_FOLDER=${LOG_FOLDER:-/var/log/CTFd}
+      - ACCESS_LOG=${ACCESS_LOG:--}
+      - ERROR_LOG=${ERROR_LOG:--}
+      - REVERSE_PROXY=${REVERSE_PROXY:-true}
     volumes:
       - .data/CTFd/logs:/var/log/CTFd
       - .data/CTFd/uploads:/var/uploads
@@ -37,11 +38,13 @@ services:
   db:
     image: mariadb:10.11
     restart: always
+    env_file:
+      - .ctfd.env
     environment:
-      - MARIADB_ROOT_PASSWORD=ctfd
-      - MARIADB_USER=ctfd
-      - MARIADB_PASSWORD=ctfd
-      - MARIADB_DATABASE=ctfd
+      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-ctfd-root-change-me}
+      - MARIADB_USER=${DB_USER:-ctfd}
+      - MARIADB_PASSWORD=${DB_PASSWORD:-ctfd}
+      - MARIADB_DATABASE=${DB_NAME:-ctfd}
       - MARIADB_AUTO_UPGRADE=1
     volumes:
       - .data/mysql:/var/lib/mysql

@@ -31,7 +31,7 @@
                 <strong>Connection:</strong>
                 {% set conn = challenge.connection_info %}
                 {% if conn.startswith("http") %}
-                  {{ conn | urlize(target="_blank") }}
+                  {{ conn | urlize(target="_blank", rel="noopener noreferrer") }}
                 {% else %}
                   <code>{{ conn }}</code>
                 {% endif %}
