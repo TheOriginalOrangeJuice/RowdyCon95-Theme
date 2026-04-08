@@ -97,8 +97,14 @@
       return "solved";
     }
 
+    // CTFd returns "ratelimited" when submitting after max attempts exhausted
+    if (status === "ratelimited" || status === "paused") {
+      if (maxAttempts > 0) {
+        return "failed";
+      }
+    }
+
     if (status === "incorrect") {
-      // CTFd updates attempts reactively; use the reported count directly.
       if (maxAttempts > 0 && attempts >= maxAttempts) {
         return "failed";
       }
@@ -279,6 +285,10 @@
     setTimeout(() => {
       refreshUI();
     }, 80);
+    // Second pass after Alpine has fully re-rendered
+    setTimeout(() => {
+      refreshUI();
+    }, 500);
   });
 
   document.addEventListener("visibilitychange", () => {
@@ -288,6 +298,37 @@
   });
 
   window.addEventListener("focus", requestChallengeRefresh);
+
+  // Direct Alpine data read after flag submission — bypasses unreliable x-effect timing
+  document.addEventListener("click", event => {
+    const submitBtn = event.target.closest("#challenge-submit, .challenge-submit");
+    if (submitBtn) {
+      const poll = (tries) => {
+        const el = document.querySelector("[x-data='Challenge']");
+        if (!el || !el._x_dataStack) {
+          if (tries > 0) setTimeout(() => poll(tries - 1), 200);
+          return;
+        }
+        const d = el._x_dataStack[0];
+        if (d && d.response && d.response.data) {
+          const detail = {
+            id: d.id,
+            status: d.response.data.status,
+            attempts: d.attempts,
+            maxAttempts: d.max_attempts
+          };
+          const s = computeStatus(detail);
+          if (s) {
+            statusMap.set(String(detail.id), s);
+            applyStatuses();
+          }
+        }
+      };
+      // Wait for the API response to arrive and Alpine to update
+      setTimeout(() => poll(5), 800);
+    }
+  });
+
   document.addEventListener("click", event => {
     const btn = event.target.closest("button[data-category-filter]");
     if (!btn) {

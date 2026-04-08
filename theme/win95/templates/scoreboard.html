@@ -77,11 +77,14 @@
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const input = document.getElementById("score-filter");
-      const table = document.getElementById("scoreboard-table");
-      if (!input || !table) {
+      if (!input) {
         return;
       }
       input.addEventListener("input", function () {
+        const table = document.getElementById("scoreboard-table");
+        if (!table) {
+          return;
+        }
         const query = input.value.toLowerCase();
         table.querySelectorAll("tbody tr").forEach(function (row) {
           const text = row.textContent.toLowerCase();

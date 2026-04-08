@@ -1,1 +1,6 @@
 {% extends "profile.html" %}
+
+{% block scripts %}
+  {{ Assets.js("assets/js/users/private.js", theme="core") }}
+  {{ super() }}
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="window win95-window" data-window-id="team-detail" data-window-title="Team - {{ team.name }}" style="--win95-top: 80px; --win95-left: 140px; --win95-width: min(940px, 92vw); --win95-height: min(560px, 72vh);" role="dialog" aria-label="Team Details">
+  <div class="title-bar">
+    <div class="title-bar-text">Network Neighborhood - {{ team.name }}</div>
+    <div class="title-bar-controls">
+      <button type="button" data-action="minimize" aria-label="Minimize"></button>
+      <button type="button" data-action="close" aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    <div class="notepad">
+      <h2 id="team-id" data-ctfd-team-id="{{ team.id }}">{{ team.name }}</h2>
+      {% if team.oauth_id %}
+        <p><span class="badge">Official</span></p>
+      {% endif %}
+      {% if team.affiliation %}
+        <p>Affiliation: {{ team.affiliation }}</p>
+      {% endif %}
+      {% if team.country %}
+        <p>Country: {{ lookup_country_code(team.country) }}</p>
+      {% endif %}
+      {% if team.bracket_id %}
+        <p>Bracket: <span class="badge">{{ team.bracket.name }}</span></p>
+      {% endif %}
+      {% for field in team.fields %}
+        <p>{{ field.name }}: {{ field.value }}</p>
+      {% endfor %}
+      {% if team.website and (team.website.startswith('http://') or team.website.startswith('https://')) %}
+        <p>Website: <a href="{{ team.website }}" target="_blank" rel="noopener noreferrer">{{ team.website }}</a></p>
+      {% endif %}
+
+      {% if scores_visible() %}
+        {% if place %}
+          <p><strong>Place:</strong> {{ place }}</p>
+        {% endif %}
+        {% if score %}
+          <p><strong>Score:</strong> {{ score }}</p>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    {% if team.members %}
+      <h3>Members</h3>
+      <div class="list-view">
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for member in team.members %}
+              <tr>
+                <td>
+                  {% if scores_visible() %}
+                    <a href="{{ url_for('users.public', user_id=member.id) }}">{{ member.name }}</a>
+                  {% else %}
+                    <span>{{ member.name }}</span>
+                  {% endif %}
+                </td>
+                <td>{{ member.score }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+
+    {% set solves = team.solves %}
+    {% if solves %}
+      <h3>Solves</h3>
+      <div class="list-view">
+        <table>
+          <thead>
+            <tr>
+              <th>Challenge</th>
+              <th>Category</th>
+              <th>Value</th>
+              <th>Solver</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for solve in solves %}
+              <tr>
+                <td>{{ solve.challenge.name }}</td>
+                <td>{{ solve.challenge.category }}</td>
+                <td>{{ solve.challenge.value }}</td>
+                <td>{{ solve.user.name }}</td>
+                <td><span data-time="{{ solve.date | isoformat }}"></span></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>No solves yet.</p>
+    {% endif %}
+  </div>
+  <div class="resize-handle" aria-hidden="true"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    window.TEAM =
+    {{
+      {
+        'type': 'team',
+        'id': team.id,
+        'name': team.name,
+        'account_id': team.id,
+      } | tojson
+    }}
+  </script>
+  {{ Assets.js("assets/js/teams/public.js", theme="core") }}
+  {{ super() }}
+{% endblock %}

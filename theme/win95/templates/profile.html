@@ -22,7 +22,7 @@
         <p>Country: {{ lookup_country_code(user.country) }}</p>
       {% endif %}
       {% if account %}
-        <p>Score: {{ account.get_score(admin=True) }}</p>
+        <p>Score: {{ account.get_score(admin=is_admin()) }}</p>
       {% endif %}
     </div>
 
@@ -64,6 +64,6 @@
 {% endblock %}
 
 {% block scripts %}
-  {{ Assets.js("assets/js/users/private.js", theme="core") }}
+  {{ Assets.js("assets/js/users/public.js", theme="core") }}
   {{ super() }}
 {% endblock %}
