@@ -19,13 +19,12 @@
 {% endblock %}
 
 {% block content %}
-	<div class="jumbotron">
-		<div class="container">
-			<h1>{% trans %}Setup{% endtrans %}</h1>
-		</div>
-	</div>
-	<div class="container">
-		<div class="col-md-8 offset-md-2">
+<div class="window win95-window" data-window-id="setup" data-window-title="Setup Wizard" style="--win95-top: 40px; --win95-left: 60px; --win95-width: min(900px, 94vw); --win95-height: min(640px, 82vh);" role="dialog" aria-label="Setup">
+  <div class="title-bar">
+    <div class="title-bar-text">Setup Wizard - {{ Configs.ctf_name or 'CTFd' }}</div>
+  </div>
+  <div class="window-body">
+    <div style="max-width: 800px; margin: 0 auto; padding: 8px;">
 			{% include "components/errors.html" %}
 
 			{% with form = Forms.setup.SetupForm() %}
@@ -375,8 +374,10 @@
 				{{ form.nonce() }}
 			</form>
 			{% endwith %}
-		</div>
-	</div>
+    </div>
+  </div>
+  <div class="resize-handle" aria-hidden="true"></div>
+</div>
 
 {% endblock %}
 
@@ -391,4 +392,5 @@
 	});
 </script>
   {{ Assets.js("assets/js/setup.js", theme="core") }}
+  {{ super() }}
 {% endblock %}

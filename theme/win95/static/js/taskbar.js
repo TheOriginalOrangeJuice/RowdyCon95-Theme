@@ -71,6 +71,6 @@
     bindStartMenu();
     bindTrayToggles();
     updateClock();
-    setInterval(updateClock, 30000);
+    setInterval(updateClock, 10000);
   });
 })();

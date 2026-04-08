@@ -1,4 +1,4 @@
-<div :class="getStyles()" role="document" x-data="Challenge" x-init='id = {{ challenge.id }}; max_attempts = {{ max_attempts }}; attempts = {{ attempts }}; ratingValue = {{ (rating.get("value") if rating else None) | tojson }}; ratingReview = {{ (rating.get("review", "") if rating else None) | tojson }};' x-effect="if (response) { window.dispatchEvent(new CustomEvent('win95-challenge-status', { detail: { id: id, status: response.data.status, attempts: attempts, maxAttempts: max_attempts } })) }">
+<div :class="getStyles()" role="document" x-data="Challenge" x-init='id = {{ challenge.id }}; max_attempts = {{ max_attempts }}; attempts = {{ attempts }}; ratingValue = {{ (rating.get("value") if rating else None) | tojson }}; ratingReview = {{ (rating.get("review", "") if rating else None) | tojson }};' x-effect="">
   <div class="modal-content window win95-modal">
     <div class="title-bar">
       <div class="title-bar-text">Notepad - {{ challenge.name }}</div>
@@ -24,7 +24,7 @@
                 {% endfor %}
               </p>
             {% endif %}
-            <div class="challenge-desc">{{ challenge.html }}</div>
+            <div class="challenge-desc">{% block description %}{{ challenge.html }}{% endblock %}</div>
 
             {% if challenge.connection_info %}
               <p>
@@ -89,9 +89,13 @@
           </template>
 
           <div class="cmd-input">
+            {% block input %}
             <input id="challenge-id" class="challenge-id" type="hidden" value="{{ challenge.id }}">
             <input id="challenge-input" class="challenge-input" type="text" name="submission" placeholder="Flag" x-model="submission" @keyup.enter="submitChallenge()">
+            {% endblock %}
+            {% block submit %}
             <button id="challenge-submit" class="challenge-submit" type="button" @click.debounce.500ms="submitChallenge()">Submit</button>
+            {% endblock %}
           </div>
 
           <div class="notification-row">

@@ -102,5 +102,16 @@
 
 {% block scripts %}
   {{ Assets.js("assets/js/teams/list.js", theme="core") }}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll(".page-select").forEach(function (sel) {
+        sel.addEventListener("change", function () {
+          var url = new URL(window.location);
+          url.searchParams.set("page", sel.value);
+          window.location.href = url.toString();
+        });
+      });
+    });
+  </script>
   {{ super() }}
 {% endblock %}

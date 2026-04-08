@@ -64,10 +64,14 @@
 
   if (trayBtn) {
     trayBtn.addEventListener("click", () => {
-      const next = window.Win95Settings.get().assistant !== false;
-      if (next) {
-        render();
-      }
+      // Read state after taskbar.js has already toggled it.
+      // Use setTimeout(0) to defer until after all synchronous click handlers.
+      setTimeout(() => {
+        const isVisible = window.Win95Settings.get().assistant !== false;
+        if (isVisible) {
+          render();
+        }
+      }, 0);
     });
   }
 
